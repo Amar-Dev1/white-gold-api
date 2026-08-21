@@ -1,0 +1,291 @@
+// Prisma schema file for WhiteGold ERP (Multi-Domain: WhiteGold & Al-Jawhara)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ==========================================
+// Auth & Access Models
+// ==========================================
+
+model User {
+  id           Int                @id @default(autoincrement())
+  username     String             @unique
+  passwordHash String
+  role         String             @default("EMPLOYEE") // ADMIN | EMPLOYEE
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  domainAccess UserDomainAccess[]
+  sessions     Session[]
+}
+
+model UserDomainAccess {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain    String   // WHITE_GOLD | AL_JAWHARA
+  createdAt DateTime @default(now())
+
+  @@unique([userId, domain])
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// Season & Vault Models
+// ==========================================
+
+model Season {
+  id         Int      @id @default(autoincrement())
+  name       String   // e.g., "موسم 2026"
+  domain     String   // WHITE_GOLD | AL_JAWHARA
+  startDate  DateTime
+  endDate    DateTime?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  vaults            Vault[]
+  cottonPurchases   CottonPurchase[]
+  packagingPurchases PackagingPurchase[]
+  cottonSales       CottonSale[]
+  wasteSales        WasteSale[]
+  ginningReports    GinningReport[]
+  jawharaPurchases  JawharaPurchase[]
+  jawharaSales      JawharaSale[]
+  jawharaExpenses   JawharaExpense[]
+  workers           Worker[]
+}
+
+model Vault {
+  id             Int      @id @default(autoincrement())
+  seasonId       Int
+  season         Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  domain         String   // WHITE_GOLD | AL_JAWHARA
+  initialCapital Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([seasonId, domain])
+}
+
+// ==========================================
+// Domain 1 — وايت قولد للأقطان (Cotton Ginning)
+// ==========================================
+
+// مشتريات خام القطن (زهرة)
+model CottonPurchase {
+  id               Int      @id @default(autoincrement())
+  seasonId         Int
+  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  date             DateTime
+  sacksCount       Int
+  weightKg         Float
+  pricePerSack     Float
+  totalAmount      Float
+  truckPlateNumber String
+  customerName     String
+  createdAt        DateTime @default(now())
+
+  @@index([seasonId, date])
+}
+
+// مشتريات أدوات تعبئة كالشوالات
+model PackagingPurchase {
+  id          Int      @id @default(autoincrement())
+  seasonId    Int
+  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  date        DateTime
+  quantity    Int
+  price       Float
+  totalCost   Float
+  type        String   // e.g. "شوالات", "أربطة"
+  createdAt   DateTime @default(now())
+
+  @@index([seasonId, date])
+}
+
+// مبيعات قطن (شعرة)
+model CottonSale {
+  id           Int      @id @default(autoincrement())
+  seasonId     Int
+  season       Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  date         DateTime
+  quantity     Int
+  weightKg     Float
+  pricePerUnit Float
+  totalAmount  Float
+  lotNumber    String
+  customerName String
+  destination  String
+  createdAt    DateTime @default(now())
+
+  @@index([seasonId, date])
+}
+
+// مبيعات مخلفات الحلج
+model WasteSale {
+  id           Int      @id @default(autoincrement())
+  seasonId     Int
+  season       Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  date         DateTime
+  quantity     Int
+  weightKg     Float
+  pricePerUnit Float
+  totalAmount  Float
+  type         String   // e.g. "مخلفات حلج", "بذور"
+  createdAt    DateTime @default(now())
+
+  @@index([seasonId, date])
+}
+
+// تقارير الحلج (صور مرفوعة)
+model GinningReport {
+  id        Int      @id @default(autoincrement())
+  seasonId  Int
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  @@index([seasonId])
+}
+
+// ==========================================
+// Domain 2 — الجوهرة لصناعة الزيوت (Oil Factory)
+// ==========================================
+
+// مشتريات الجوهرة (خام / انتاج / أخرى)
+model JawharaPurchase {
+  id               Int      @id @default(autoincrement())
+  seasonId         Int
+  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  category         String   // RAW | PRODUCTION | OTHER
+  date             DateTime
+  sacksCount       Int
+  weightKg         Float
+  pricePerSack     Float
+  totalAmount      Float
+  truckPlateNumber String
+  customerName     String
+  createdAt        DateTime @default(now())
+
+  @@index([seasonId, category, date])
+}
+
+// مبيعات الجوهرة (أمباز / زيت / مخلفات)
+model JawharaSale {
+  id           Int      @id @default(autoincrement())
+  seasonId     Int
+  season       Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  category     String   // FEED | OIL | WASTE
+  date         DateTime
+  quantity     Int
+  weightKg     Float
+  pricePerUnit Float
+  totalAmount  Float
+  customerName String
+  createdAt    DateTime @default(now())
+
+  @@index([seasonId, category, date])
+}
+
+// منصرفات الجوهرة (تشغيل وإنتاج / أخرى)
+model JawharaExpense {
+  id          Int      @id @default(autoincrement())
+  seasonId    Int
+  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  category    String   // OPERATIONS | OTHER
+  date        DateTime
+  description String
+  amount      Float
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([seasonId, category, date])
+}
+
+// مخزون الجوهرة
+model Stock {
+  id              Int             @id @default(autoincrement())
+  category        String          // FEED | OIL | WASTE | SPARE_PARTS | PACKAGING
+  itemName        String
+  currentQuantity Float           @default(0)
+  unit            String          // e.g. "طن", "كيلو", "لتر", "قطعة"
+  lastUpdated     DateTime        @updatedAt
+  movements       StockMovement[]
+
+  @@index([category])
+}
+
+// حركات المخزون
+model StockMovement {
+  id            Int      @id @default(autoincrement())
+  stockId       Int
+  stock         Stock    @relation(fields: [stockId], references: [id], onDelete: Cascade)
+  date          DateTime
+  movementType  String   // IN | OUT
+  quantity      Float
+  referenceType String?  // e.g. "PURCHASE", "SALE", "MANUAL"
+  referenceId   Int?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  @@index([stockId, date])
+}
+
+// العملاء
+model Customer {
+  id        Int      @id @default(autoincrement())
+  domain    String   // WHITE_GOLD | AL_JAWHARA
+  name      String
+  phone     String?
+  address   String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([domain])
+}
+
+// ==========================================
+// Shared Entities (Domain Scoped)
+// ==========================================
+
+// الموظفين (رواتب شهري/ثابت)
+model Employee {
+  id        Int      @id @default(autoincrement())
+  domain    String   // WHITE_GOLD | AL_JAWHARA
+  name      String
+  phone     String?
+  jobTitle  String
+  salary    Float
+  startDate DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([domain])
+}
+
+// العمال (أجر يومي)
+model Worker {
+  id        Int      @id @default(autoincrement())
+  domain    String   // WHITE_GOLD | AL_JAWHARA
+  seasonId  Int
+  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  name      String
+  phone     String?
+  dailyWage Float
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@index([domain, seasonId])
+}
