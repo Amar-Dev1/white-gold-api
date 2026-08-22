@@ -31,6 +31,23 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /api/auth/verify-password (Domain entry authentication)
+router.post('/verify-password', requireAuth, async (req, res) => {
+  const { password } = req.body;
+  if (!password || typeof password !== 'string') {
+    res.status(400).json({ error: 'كلمة المرور مطلوبة' });
+    return;
+  }
+
+  const isValid = await service.verifyUserPassword(req.user!.id, password);
+  if (!isValid) {
+    res.status(401).json({ error: 'كلمة المرور غير صحيحة' });
+    return;
+  }
+
+  res.json({ success: true, message: 'تم التحقق من كلمة المرور بنجاح' });
+});
+
 // POST /api/auth/logout
 router.post('/logout', requireAuth, async (req, res) => {
   await service.logoutUser(req.sessionToken);

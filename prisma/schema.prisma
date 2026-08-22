@@ -68,15 +68,32 @@ model Season {
 }
 
 model Vault {
-  id             Int      @id @default(autoincrement())
+  id             Int               @id @default(autoincrement())
   seasonId       Int
-  season         Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  domain         String   // WHITE_GOLD | AL_JAWHARA
-  initialCapital Float    @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  season         Season            @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  domain         String            // WHITE_GOLD | AL_JAWHARA
+  initialCapital Float             @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  adjustments    VaultAdjustment[]
 
   @@unique([seasonId, domain])
+}
+
+// قيود التسوية والتعديل اليدوي للرصيد المتاح للخزينة
+model VaultAdjustment {
+  id          Int      @id @default(autoincrement())
+  vaultId     Int
+  vault       Vault    @relation(fields: [vaultId], references: [id], onDelete: Cascade)
+  date        DateTime
+  type        String   // CREDIT | DEBIT
+  amount      Float
+  reason      String
+  referenceNo String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([vaultId, date])
 }
 
 // ==========================================

@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { startTestServer } from '../../lib/testHelpers';
+import { prisma } from '../../lib/prisma';
 
 describe('Jawhara Sales Module', () => {
   let serverInstance: any;
@@ -26,6 +27,19 @@ describe('Jawhara Sales Module', () => {
     });
     const seasons = await seasonsRes.json();
     seasonId = seasons[0].id;
+
+    // Ensure stock exists for OIL for testing sale
+    await prisma.stock.upsert({
+      where: { id: 999999 },
+      update: { currentQuantity: 500 },
+      create: {
+        id: 999999,
+        category: 'OIL',
+        itemName: 'مخزون زيت البذرة النقي',
+        currentQuantity: 500,
+        unit: 'برميل',
+      },
+    });
   });
 
   afterAll(() => {

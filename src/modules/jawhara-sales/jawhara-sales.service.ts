@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { z } from 'zod';
+import { syncSaleToStock, revertSaleStock } from '../stock/stock.service';
 
 export const jawharaSaleSchema = z.object({
   seasonId: z.number(),
@@ -25,15 +26,50 @@ export async function listJawharaSales(seasonId: number, category?: string) {
 }
 
 export async function createJawharaSale(data: JawharaSaleInput) {
-  return prisma.jawharaSale.create({
+  const saleDate = new Date(data.date);
+
+  const sale = await prisma.jawharaSale.create({
     data: {
       ...data,
-      date: new Date(data.date),
+      date: saleDate,
     },
   });
+
+  try {
+    // Sync to stock (checks if stock quantity is sufficient!)
+    await syncSaleToStock(sale.id, data.category, saleDate, data.quantity, data.customerName);
+  } catch (error) {
+    // Revert sale if stock validation failed!
+    await prisma.jawharaSale.delete({ where: { id: sale.id } }).catch(() => {});
+    throw error;
+  }
+
+  return sale;
 }
 
 export async function updateJawharaSale(id: number, data: Partial<JawharaSaleInput>) {
+  const existing = await prisma.jawharaSale.findUnique({ where: { id } });
+  if (!existing) {
+    throw new Error('SALE_NOT_FOUND');
+  }
+
+  // Revert previous stock deduction
+  await revertSaleStock(id);
+
+  const saleDate = data.date ? new Date(data.date) : existing.date;
+  const updatedCategory = data.category || existing.category;
+  const updatedQuantity = data.quantity !== undefined ? data.quantity : existing.quantity;
+  const updatedCustomer = data.customerName || existing.customerName;
+
+  try {
+    // Check stock availability & sync
+    await syncSaleToStock(id, updatedCategory, saleDate, updatedQuantity, updatedCustomer);
+  } catch (error) {
+    // Re-apply original stock deduction if update stock sync fails
+    await syncSaleToStock(id, existing.category, existing.date, existing.quantity, existing.customerName).catch(() => {});
+    throw error;
+  }
+
   return prisma.jawharaSale.update({
     where: { id },
     data: {
@@ -44,5 +80,6 @@ export async function updateJawharaSale(id: number, data: Partial<JawharaSaleInp
 }
 
 export async function deleteJawharaSale(id: number) {
+  await revertSaleStock(id);
   return prisma.jawharaSale.delete({ where: { id } });
 }

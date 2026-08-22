@@ -30,7 +30,9 @@ export async function listUsers() {
     username: u.username,
     role: u.role,
     createdAt: u.createdAt,
-    allowedDomains: u.domainAccess.map((da) => da.domain),
+    allowedDomains: u.role === 'ADMIN' 
+      ? ['WHITE_GOLD', 'AL_JAWHARA'] 
+      : u.domainAccess.map((da) => da.domain),
   }));
 }
 
@@ -40,6 +42,11 @@ export async function createUser(input: CreateUserInput) {
     throw new Error('USERNAME_EXISTS');
   }
 
+  // Admins ALWAYS get full access to both domains
+  const effectiveDomains = input.role === 'ADMIN'
+    ? ['WHITE_GOLD', 'AL_JAWHARA']
+    : input.domains;
+
   const passwordHash = await bcrypt.hash(input.password, 10);
 
   const newUser = await prisma.user.create({
@@ -48,7 +55,7 @@ export async function createUser(input: CreateUserInput) {
       passwordHash,
       role: input.role,
       domainAccess: {
-        create: input.domains.map((domain) => ({ domain })),
+        create: effectiveDomains.map((domain) => ({ domain })),
       },
     },
     include: { domainAccess: true },
@@ -59,7 +66,9 @@ export async function createUser(input: CreateUserInput) {
     username: newUser.username,
     role: newUser.role,
     createdAt: newUser.createdAt,
-    allowedDomains: newUser.domainAccess.map((da) => da.domain),
+    allowedDomains: newUser.role === 'ADMIN'
+      ? ['WHITE_GOLD', 'AL_JAWHARA']
+      : newUser.domainAccess.map((da) => da.domain),
   };
 }
 
@@ -69,6 +78,11 @@ export async function updateUser(id: number, input: UpdateUserInput) {
     throw new Error('USER_NOT_FOUND');
   }
 
+  // 1. Prevent demoting an Admin to Employee
+  if (user.role === 'ADMIN' && input.role === 'EMPLOYEE') {
+    throw new Error('CANNOT_DEMOTE_ADMIN');
+  }
+
   if (input.username && input.username !== user.username) {
     const existing = await prisma.user.findUnique({ where: { username: input.username } });
     if (existing) {
@@ -76,10 +90,16 @@ export async function updateUser(id: number, input: UpdateUserInput) {
     }
   }
 
+  const effectiveRole = input.role || user.role;
   const updateData: any = {};
   if (input.username) updateData.username = input.username;
   if (input.role) updateData.role = input.role;
   if (input.password) updateData.passwordHash = await bcrypt.hash(input.password, 10);
+
+  // Admins ALWAYS get full access to both domains
+  const effectiveDomains = effectiveRole === 'ADMIN'
+    ? ['WHITE_GOLD', 'AL_JAWHARA']
+    : (input.domains || user.domainAccess.map((da) => da.domain));
 
   const updatedUser = await prisma.$transaction(async (tx) => {
     if (Object.keys(updateData).length > 0) {
@@ -89,10 +109,10 @@ export async function updateUser(id: number, input: UpdateUserInput) {
       });
     }
 
-    if (input.domains) {
+    if (effectiveDomains) {
       await tx.userDomainAccess.deleteMany({ where: { userId: id } });
       await tx.userDomainAccess.createMany({
-        data: input.domains.map((domain) => ({ userId: id, domain })),
+        data: effectiveDomains.map((domain: string) => ({ userId: id, domain })),
       });
     }
 
@@ -111,7 +131,9 @@ export async function updateUser(id: number, input: UpdateUserInput) {
     username: updatedUser.username,
     role: updatedUser.role,
     createdAt: updatedUser.createdAt,
-    allowedDomains: updatedUser.domainAccess.map((da) => da.domain),
+    allowedDomains: updatedUser.role === 'ADMIN'
+      ? ['WHITE_GOLD', 'AL_JAWHARA']
+      : updatedUser.domainAccess.map((da) => da.domain),
   };
 }
 
@@ -120,5 +142,10 @@ export async function deleteUser(id: number) {
   if (!user) {
     throw new Error('USER_NOT_FOUND');
   }
+
+  if (user.username === 'admin') {
+    throw new Error('CANNOT_DELETE_PRIMARY_ADMIN');
+  }
+
   return prisma.user.delete({ where: { id } });
 }

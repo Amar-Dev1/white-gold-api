@@ -27,8 +27,17 @@ router.post('/', async (req, res) => {
     return;
   }
 
-  const sale = await service.createJawharaSale(result.data);
-  res.status(201).json(sale);
+  try {
+    const sale = await service.createJawharaSale(result.data);
+    res.status(201).json(sale);
+  } catch (error: any) {
+    if (error.message && error.message.startsWith('INSUFFICIENT_STOCK')) {
+      const msg = error.message.replace('INSUFFICIENT_STOCK:', '');
+      res.status(400).json({ error: msg });
+      return;
+    }
+    res.status(500).json({ error: 'فشل إتمام عملية البيع' });
+  }
 });
 
 // PUT /api/jw/sales/:id
@@ -45,8 +54,17 @@ router.put('/:id', async (req, res) => {
     return;
   }
 
-  const updated = await service.updateJawharaSale(id, result.data);
-  res.json(updated);
+  try {
+    const updated = await service.updateJawharaSale(id, result.data);
+    res.json(updated);
+  } catch (error: any) {
+    if (error.message && error.message.startsWith('INSUFFICIENT_STOCK')) {
+      const msg = error.message.replace('INSUFFICIENT_STOCK:', '');
+      res.status(400).json({ error: msg });
+      return;
+    }
+    res.status(500).json({ error: 'فشل تعديل عملية البيع' });
+  }
 });
 
 // DELETE /api/jw/sales/:id

@@ -57,6 +57,10 @@ router.put('/:id', async (req, res) => {
       res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
       return;
     }
+    if (error.message === 'CANNOT_DEMOTE_ADMIN') {
+      res.status(400).json({ error: 'لا يمكن تحويل رتبة حساب المدير إلى موظف' });
+      return;
+    }
     res.status(500).json({ error: 'فشل تحديث المستخدم' });
   }
 });
@@ -75,6 +79,10 @@ router.delete('/:id', async (req, res) => {
   } catch (error: any) {
     if (error.message === 'USER_NOT_FOUND') {
       res.status(404).json({ error: 'المستخدم غير موجود' });
+      return;
+    }
+    if (error.message === 'CANNOT_DELETE_PRIMARY_ADMIN') {
+      res.status(400).json({ error: 'لا يمكن حذف حساب المدير الرئيسي' });
       return;
     }
     res.status(500).json({ error: 'فشل حذف المستخدم' });

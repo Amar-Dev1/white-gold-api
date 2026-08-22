@@ -1,6 +1,8 @@
 import express, { Express } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import bcrypt from 'bcryptjs';
+import { prisma } from './prisma';
 
 // Module Route Imports
 import authRoutes from '../modules/auth/auth.route';
@@ -42,7 +44,73 @@ export function createTestApp(): Express {
   return app;
 }
 
+const ADMIN_HASH = bcrypt.hashSync('admin123', 10);
+const PASS_HASH = bcrypt.hashSync('pass123', 10);
+
+export async function ensureTestUsers() {
+  await prisma.user.upsert({
+    where: { username: 'admin' },
+    update: { passwordHash: ADMIN_HASH, role: 'ADMIN' },
+    create: {
+      username: 'admin',
+      passwordHash: ADMIN_HASH,
+      role: 'ADMIN',
+      domainAccess: { create: [{ domain: 'WHITE_GOLD' }, { domain: 'AL_JAWHARA' }] },
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { username: 'wg_user' },
+    update: { passwordHash: PASS_HASH, role: 'EMPLOYEE' },
+    create: {
+      username: 'wg_user',
+      passwordHash: PASS_HASH,
+      role: 'EMPLOYEE',
+      domainAccess: { create: [{ domain: 'WHITE_GOLD' }] },
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { username: 'jw_user' },
+    update: { passwordHash: PASS_HASH, role: 'EMPLOYEE' },
+    create: {
+      username: 'jw_user',
+      passwordHash: PASS_HASH,
+      role: 'EMPLOYEE',
+      domainAccess: { create: [{ domain: 'AL_JAWHARA' }] },
+    },
+  });
+
+  // Ensure active season exists for both domains in tests
+  const wgSeason = await prisma.season.findFirst({ where: { domain: 'WHITE_GOLD', isActive: true } });
+  if (!wgSeason) {
+    await prisma.season.create({
+      data: {
+        name: 'موسم 2026 الحالي',
+        domain: 'WHITE_GOLD',
+        startDate: new Date('2026-01-01'),
+        isActive: true,
+        vaults: { create: { domain: 'WHITE_GOLD', initialCapital: 0 } },
+      },
+    });
+  }
+
+  const jwSeason = await prisma.season.findFirst({ where: { domain: 'AL_JAWHARA', isActive: true } });
+  if (!jwSeason) {
+    await prisma.season.create({
+      data: {
+        name: 'موسم 2026 الحالي',
+        domain: 'AL_JAWHARA',
+        startDate: new Date('2026-01-01'),
+        isActive: true,
+        vaults: { create: { domain: 'AL_JAWHARA', initialCapital: 0 } },
+      },
+    });
+  }
+}
+
 export async function startTestServer() {
+  await ensureTestUsers();
   const app = createTestApp();
   return new Promise<{ server: any; baseUrl: string }>((resolve) => {
     const server = app.listen(0, () => {

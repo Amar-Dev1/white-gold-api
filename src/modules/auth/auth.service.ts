@@ -45,6 +45,12 @@ export async function loginUser(input: LoginInput) {
   return { token, user: responseUser, expiresAt };
 }
 
+export async function verifyUserPassword(userId: number, password: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) return false;
+  return bcrypt.compare(password, user.passwordHash);
+}
+
 export async function logoutUser(sessionToken?: string) {
   if (sessionToken) {
     await prisma.session.deleteMany({
