@@ -5,17 +5,17 @@ import * as service from './workers.service';
 const router = Router();
 router.use(requireAuth);
 
-// GET /api/workers?domain=WHITE_GOLD&seasonId=X
+// GET /api/workers?seasonId=X&domain=Y
 router.get('/', async (req, res) => {
   const domain = req.query.domain as 'WHITE_GOLD' | 'AL_JAWHARA' | undefined;
   const seasonId = parseInt(req.query.seasonId as string || '', 10);
 
-  if (!domain || isNaN(seasonId)) {
-    res.status(400).json({ error: 'domain و seasonId مطلوبان' });
+  if (isNaN(seasonId)) {
+    res.status(400).json({ error: 'seasonId مطلوب' });
     return;
   }
 
-  if (req.user?.role !== 'ADMIN' && !req.user?.allowedDomains.includes(domain)) {
+  if (domain && req.user?.role !== 'ADMIN' && !req.user?.allowedDomains.includes(domain)) {
     res.status(403).json({ error: 'غير مصرح بالوصول لهذا المجال' });
     return;
   }

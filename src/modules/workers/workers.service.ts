@@ -12,9 +12,12 @@ export const workerSchema = z.object({
 
 export type WorkerInput = z.infer<typeof workerSchema>;
 
-export async function listWorkers(domain: 'WHITE_GOLD' | 'AL_JAWHARA', seasonId: number) {
+export async function listWorkers(domain?: 'WHITE_GOLD' | 'AL_JAWHARA', seasonId?: number) {
   return prisma.worker.findMany({
-    where: { domain, seasonId },
+    where: {
+      ...(domain ? { domain } : {}),
+      ...(seasonId && !isNaN(seasonId) ? { seasonId } : {}),
+    },
     orderBy: { createdAt: 'desc' },
   });
 }

@@ -8,9 +8,9 @@ export const cottonSaleSchema = z.object({
   weightKg: z.number().min(0),
   pricePerUnit: z.number().min(0),
   totalAmount: z.number().min(0),
-  lotNumber: z.string(),
-  customerName: z.string(),
-  destination: z.string(),
+  lotNumber: z.string().optional().default(''),
+  customerName: z.string().optional().default(''),
+  destination: z.string().optional().default(''),
 });
 
 export const wasteSaleSchema = z.object({
@@ -20,7 +20,8 @@ export const wasteSaleSchema = z.object({
   weightKg: z.number().min(0),
   pricePerUnit: z.number().min(0),
   totalAmount: z.number().min(0),
-  type: z.string(),
+  type: z.string().optional().default('مخلفات حلج'),
+  customerName: z.string().optional(),
 });
 
 export type CottonSaleInput = z.infer<typeof cottonSaleSchema>;
@@ -60,15 +61,17 @@ export async function listWasteSales(seasonId: number) {
 }
 
 export async function createWasteSale(data: WasteSaleInput) {
+  const { customerName, ...rest } = data;
   return prisma.wasteSale.create({
-    data: { ...data, date: new Date(data.date) },
+    data: { ...rest, date: new Date(data.date) },
   });
 }
 
 export async function updateWasteSale(id: number, data: Partial<WasteSaleInput>) {
+  const { customerName, ...rest } = data;
   return prisma.wasteSale.update({
     where: { id },
-    data: { ...data, ...(data.date ? { date: new Date(data.date) } : {}) },
+    data: { ...rest, ...(data.date ? { date: new Date(data.date) } : {}) },
   });
 }
 

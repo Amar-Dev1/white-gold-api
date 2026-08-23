@@ -13,9 +13,9 @@ export const employeeSchema = z.object({
 
 export type EmployeeInput = z.infer<typeof employeeSchema>;
 
-export async function listEmployees(domain: 'WHITE_GOLD' | 'AL_JAWHARA') {
+export async function listEmployees(domain?: 'WHITE_GOLD' | 'AL_JAWHARA') {
   return prisma.employee.findMany({
-    where: { domain },
+    where: domain ? { domain } : {},
     orderBy: { startDate: 'desc' },
   });
 }

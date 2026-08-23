@@ -8,7 +8,7 @@ export const cottonPurchaseSchema = z.object({
   weightKg: z.number().min(0),
   pricePerSack: z.number().min(0),
   totalAmount: z.number().min(0),
-  truckPlateNumber: z.string(),
+  truckPlateNumber: z.string().optional().default(''),
   customerName: z.string(),
 });
 
@@ -19,6 +19,7 @@ export const packagingPurchaseSchema = z.object({
   price: z.number().min(0),
   totalCost: z.number().min(0),
   type: z.string(),
+  supplierName: z.string().optional(),
 });
 
 export type CottonPurchaseInput = z.infer<typeof cottonPurchaseSchema>;
@@ -58,15 +59,17 @@ export async function listPackagingPurchases(seasonId: number) {
 }
 
 export async function createPackagingPurchase(data: PackagingPurchaseInput) {
+  const { supplierName, ...rest } = data;
   return prisma.packagingPurchase.create({
-    data: { ...data, date: new Date(data.date) },
+    data: { ...rest, date: new Date(data.date) },
   });
 }
 
 export async function updatePackagingPurchase(id: number, data: Partial<PackagingPurchaseInput>) {
+  const { supplierName, ...rest } = data;
   return prisma.packagingPurchase.update({
     where: { id },
-    data: { ...data, ...(data.date ? { date: new Date(data.date) } : {}) },
+    data: { ...rest, ...(data.date ? { date: new Date(data.date) } : {}) },
   });
 }
 

@@ -48,37 +48,54 @@ const ADMIN_HASH = bcrypt.hashSync('admin123', 10);
 const PASS_HASH = bcrypt.hashSync('pass123', 10);
 
 export async function ensureTestUsers() {
-  await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: { username: 'admin' },
     update: { passwordHash: ADMIN_HASH, role: 'ADMIN' },
     create: {
       username: 'admin',
       passwordHash: ADMIN_HASH,
       role: 'ADMIN',
-      domainAccess: { create: [{ domain: 'WHITE_GOLD' }, { domain: 'AL_JAWHARA' }] },
     },
   });
+  await prisma.userDomainAccess.upsert({
+    where: { userId_domain: { userId: admin.id, domain: 'WHITE_GOLD' } },
+    update: {},
+    create: { userId: admin.id, domain: 'WHITE_GOLD' },
+  });
+  await prisma.userDomainAccess.upsert({
+    where: { userId_domain: { userId: admin.id, domain: 'AL_JAWHARA' } },
+    update: {},
+    create: { userId: admin.id, domain: 'AL_JAWHARA' },
+  });
 
-  await prisma.user.upsert({
+  const wgUser = await prisma.user.upsert({
     where: { username: 'wg_user' },
     update: { passwordHash: PASS_HASH, role: 'EMPLOYEE' },
     create: {
       username: 'wg_user',
       passwordHash: PASS_HASH,
       role: 'EMPLOYEE',
-      domainAccess: { create: [{ domain: 'WHITE_GOLD' }] },
     },
   });
+  await prisma.userDomainAccess.upsert({
+    where: { userId_domain: { userId: wgUser.id, domain: 'WHITE_GOLD' } },
+    update: {},
+    create: { userId: wgUser.id, domain: 'WHITE_GOLD' },
+  });
 
-  await prisma.user.upsert({
+  const jwUser = await prisma.user.upsert({
     where: { username: 'jw_user' },
     update: { passwordHash: PASS_HASH, role: 'EMPLOYEE' },
     create: {
       username: 'jw_user',
       passwordHash: PASS_HASH,
       role: 'EMPLOYEE',
-      domainAccess: { create: [{ domain: 'AL_JAWHARA' }] },
     },
+  });
+  await prisma.userDomainAccess.upsert({
+    where: { userId_domain: { userId: jwUser.id, domain: 'AL_JAWHARA' } },
+    update: {},
+    create: { userId: jwUser.id, domain: 'AL_JAWHARA' },
   });
 
   // Ensure active season exists for both domains in tests

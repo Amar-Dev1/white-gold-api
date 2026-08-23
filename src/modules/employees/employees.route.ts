@@ -5,16 +5,11 @@ import * as service from './employees.service';
 const router = Router();
 router.use(requireAuth);
 
-// GET /api/employees?domain=WHITE_GOLD
+// GET /api/employees?domain=WHITE_GOLD (domain is optional)
 router.get('/', async (req, res) => {
   const domain = req.query.domain as 'WHITE_GOLD' | 'AL_JAWHARA' | undefined;
 
-  if (!domain) {
-    res.status(400).json({ error: 'domain مطلوب' });
-    return;
-  }
-
-  if (req.user?.role !== 'ADMIN' && !req.user?.allowedDomains.includes(domain)) {
+  if (domain && req.user?.role !== 'ADMIN' && !req.user?.allowedDomains.includes(domain)) {
     res.status(403).json({ error: 'غير مصرح بالوصول لهذا المجال' });
     return;
   }
