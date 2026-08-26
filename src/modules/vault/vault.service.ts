@@ -20,6 +20,19 @@ export async function getVaultSummary(seasonId: number, domain: 'WHITE_GOLD' | '
   });
 
   if (!vault) {
+    const season = await prisma.season.findUnique({ where: { id: seasonId } });
+    if (!season) {
+      return {
+        vaultId: null,
+        seasonId,
+        domain,
+        vaultConstant: 0,
+        creditTotal: 0,
+        debitTotal: 0,
+        availableBalance: 0,
+      };
+    }
+
     vault = await prisma.vault.create({
       data: {
         seasonId,

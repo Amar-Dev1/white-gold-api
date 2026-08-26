@@ -18,6 +18,8 @@ import jwStockRoutes from './src/modules/stock/stock.route';
 import jwCustomersRoutes from './src/modules/customers/customers.route';
 import employeesRoutes from './src/modules/employees/employees.route';
 import workersRoutes from './src/modules/workers/workers.route';
+import uploadsRoutes from './src/modules/uploads/uploads.route';
+import { UPLOAD_DIR } from './src/lib/upload';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -28,8 +30,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Static uploads serving
-const uploadsPath = path.join(process.cwd(), 'uploads');
-app.use('/uploads', express.static(uploadsPath));
+app.use('/uploads', express.static(UPLOAD_DIR));
 
 // API Router Mounting
 app.use('/api/auth', authRoutes);
@@ -46,6 +47,7 @@ app.use('/api/jw/stock', jwStockRoutes);
 app.use('/api/customers', jwCustomersRoutes);
 app.use('/api/employees', employeesRoutes);
 app.use('/api/workers', workersRoutes);
+app.use('/api/uploads', uploadsRoutes);
 
 // Health Check
 app.get('/api/health', (_req, res) => {

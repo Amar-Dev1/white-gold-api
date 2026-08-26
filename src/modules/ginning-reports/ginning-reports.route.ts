@@ -1,28 +1,10 @@
 import { Router } from 'express';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import { requireAuth, requireDomain } from '../../middleware/auth';
 import * as service from './ginning-reports.service';
+import { upload } from '../../lib/upload';
 
 const router = Router();
 router.use(requireAuth, requireDomain('WHITE_GOLD'));
-
-const uploadDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname) || '.png';
-    cb(null, `report-${uniqueSuffix}${ext}`);
-  },
-});
-
-const upload = multer({ storage });
 
 // GET /api/wg/reports?seasonId=X
 router.get('/', async (req, res) => {

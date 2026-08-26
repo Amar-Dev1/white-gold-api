@@ -8,7 +8,30 @@ router.use(requireAuth, requireDomain('AL_JAWHARA'));
 // GET /api/jw/stock?category=FEED
 router.get('/', async (req, res) => {
   const category = req.query.category as string | undefined;
-  const items = await service.listStockItems(category);
+  let items = await service.listStockItems(category);
+
+  // If a specific category was requested and no item exists yet, ensure one exists
+  if (category && items.length === 0) {
+    const defaultNames: Record<string, string> = {
+      OIL: 'مخزون زيت البذرة الصافي',
+      FEED: 'مخزون أمباز (علف البذرة)',
+      WASTE: 'مخزون مخلفات العصر',
+      PACKAGING: 'مخزون مستلزمات التعبئة',
+    };
+    const defaultUnits: Record<string, string> = {
+      OIL: 'برميل',
+      FEED: 'جوال',
+      WASTE: 'طن',
+      PACKAGING: 'وحدة',
+    };
+    const item = await service.ensureStockItemForCategory(
+      category,
+      defaultNames[category] || `مخزون ${category}`,
+      defaultUnits[category] || 'وحدة'
+    );
+    items = [item];
+  }
+
   res.json(items);
 });
 
@@ -54,8 +77,8 @@ router.delete('/:id', async (req, res) => {
   res.json({ message: 'تم الحذف بنجاح' });
 });
 
-// POST /api/jw/stock/:id/movement
-router.post('/:id/movement', async (req, res) => {
+// POST /api/jw/stock/:id/movement AND /api/jw/stock/:id/movements
+const handleRecordMovement = async (req: any, res: any) => {
   const id = parseInt(req.params.id || '', 10);
   if (isNaN(id)) {
     res.status(400).json({ error: 'المعرف غير صحيح' });
@@ -78,7 +101,10 @@ router.post('/:id/movement', async (req, res) => {
     }
     res.status(500).json({ error: 'فشل تسجيل حركة المخزون' });
   }
-});
+};
+
+router.post('/:id/movement', handleRecordMovement);
+router.post('/:id/movements', handleRecordMovement);
 
 // GET /api/jw/stock/:id/movements
 router.get('/:id/movements', async (req, res) => {
