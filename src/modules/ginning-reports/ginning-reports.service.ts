@@ -2,17 +2,15 @@ import path from 'path';
 import fs from 'fs';
 import { prisma } from '../../lib/prisma';
 
-export async function listGinningReports(seasonId: number) {
+export async function listGinningReports() {
   return prisma.ginningReport.findMany({
-    where: { seasonId },
     orderBy: { createdAt: 'desc' },
   });
 }
 
-export async function createGinningReport(seasonId: number, imageUrl: string) {
+export async function createGinningReport(imageUrl: string) {
   return prisma.ginningReport.create({
     data: {
-      seasonId,
       imageUrl,
     },
   });

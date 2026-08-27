@@ -12,30 +12,14 @@ export const vaultAdjustmentSchema = z.object({
 
 export type VaultAdjustmentInput = z.infer<typeof vaultAdjustmentSchema>;
 
-export async function getVaultSummary(seasonId: number, domain: 'WHITE_GOLD' | 'AL_JAWHARA') {
+export async function getVaultSummary(domain: 'WHITE_GOLD' | 'AL_JAWHARA') {
   let vault = await prisma.vault.findUnique({
-    where: {
-      seasonId_domain: { seasonId, domain },
-    },
+    where: { domain },
   });
 
   if (!vault) {
-    const season = await prisma.season.findUnique({ where: { id: seasonId } });
-    if (!season) {
-      return {
-        vaultId: null,
-        seasonId,
-        domain,
-        vaultConstant: 0,
-        creditTotal: 0,
-        debitTotal: 0,
-        availableBalance: 0,
-      };
-    }
-
     vault = await prisma.vault.create({
       data: {
-        seasonId,
         domain,
         initialCapital: 0,
       },
@@ -47,37 +31,30 @@ export async function getVaultSummary(seasonId: number, domain: 'WHITE_GOLD' | '
 
   if (domain === 'WHITE_GOLD') {
     const cottonSales = await prisma.cottonSale.aggregate({
-      where: { seasonId },
       _sum: { totalAmount: true },
     });
     const wasteSales = await prisma.wasteSale.aggregate({
-      where: { seasonId },
       _sum: { totalAmount: true },
     });
     creditTotal = (cottonSales._sum.totalAmount || 0) + (wasteSales._sum.totalAmount || 0);
 
     const cottonPurchases = await prisma.cottonPurchase.aggregate({
-      where: { seasonId },
       _sum: { totalAmount: true },
     });
     const packagingPurchases = await prisma.packagingPurchase.aggregate({
-      where: { seasonId },
       _sum: { totalCost: true },
     });
     debitTotal = (cottonPurchases._sum.totalAmount || 0) + (packagingPurchases._sum.totalCost || 0);
   } else {
     const jawharaSales = await prisma.jawharaSale.aggregate({
-      where: { seasonId },
       _sum: { totalAmount: true },
     });
     creditTotal = jawharaSales._sum.totalAmount || 0;
 
     const jawharaPurchases = await prisma.jawharaPurchase.aggregate({
-      where: { seasonId },
       _sum: { totalAmount: true },
     });
     const jawharaExpenses = await prisma.jawharaExpense.aggregate({
-      where: { seasonId },
       _sum: { amount: true },
     });
     debitTotal = (jawharaPurchases._sum.totalAmount || 0) + (jawharaExpenses._sum.amount || 0);
@@ -100,7 +77,6 @@ export async function getVaultSummary(seasonId: number, domain: 'WHITE_GOLD' | '
 
   return {
     vaultId: vault.id,
-    seasonId,
     domain,
     vaultConstant: vault.initialCapital,
     creditTotal,
@@ -173,19 +149,17 @@ interface VaultTransaction {
 }
 
 export async function getVaultTransactions(
-  seasonId: number,
   domain: 'WHITE_GOLD' | 'AL_JAWHARA'
 ): Promise<VaultTransaction[]> {
   const transactions: VaultTransaction[] = [];
 
   const vault = await prisma.vault.findUnique({
-    where: { seasonId_domain: { seasonId, domain } },
+    where: { domain },
   });
 
   if (domain === 'WHITE_GOLD') {
     // CREDIT: Cotton sales
     const cottonSales = await prisma.cottonSale.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     for (const s of cottonSales) {
@@ -202,7 +176,6 @@ export async function getVaultTransactions(
 
     // CREDIT: Waste sales
     const wasteSales = await prisma.wasteSale.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     for (const w of wasteSales) {
@@ -219,7 +192,6 @@ export async function getVaultTransactions(
 
     // DEBIT: Cotton purchases
     const cottonPurchases = await prisma.cottonPurchase.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     for (const p of cottonPurchases) {
@@ -236,7 +208,6 @@ export async function getVaultTransactions(
 
     // DEBIT: Packaging purchases
     const packagingPurchases = await prisma.packagingPurchase.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     for (const pk of packagingPurchases) {
@@ -254,7 +225,6 @@ export async function getVaultTransactions(
     // AL_JAWHARA
     // CREDIT: Jawhara sales
     const jawharaSales = await prisma.jawharaSale.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     const categoryLabels: Record<string, string> = {
@@ -276,7 +246,6 @@ export async function getVaultTransactions(
 
     // DEBIT: Jawhara purchases
     const jawharaPurchases = await prisma.jawharaPurchase.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     const purchaseCategoryLabels: Record<string, string> = {
@@ -298,7 +267,6 @@ export async function getVaultTransactions(
 
     // DEBIT: Jawhara expenses
     const jawharaExpenses = await prisma.jawharaExpense.findMany({
-      where: { seasonId },
       orderBy: { date: 'desc' },
     });
     for (const ex of jawharaExpenses) {

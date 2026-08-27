@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { syncSaleToStock, revertSaleStock } from '../stock/stock.service';
 
 export const jawharaSaleSchema = z.object({
-  seasonId: z.number(),
   category: z.enum(['FEED', 'OIL', 'WASTE']),
   date: z.string(),
   quantity: z.number().min(1),
@@ -15,10 +14,9 @@ export const jawharaSaleSchema = z.object({
 
 export type JawharaSaleInput = z.infer<typeof jawharaSaleSchema>;
 
-export async function listJawharaSales(seasonId: number, category?: string) {
+export async function listJawharaSales(category?: string) {
   return prisma.jawharaSale.findMany({
     where: {
-      seasonId,
       ...(category ? { category } : {}),
     },
     orderBy: { date: 'desc' },

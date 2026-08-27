@@ -6,36 +6,22 @@ import { upload } from '../../lib/upload';
 const router = Router();
 router.use(requireAuth, requireDomain('WHITE_GOLD'));
 
-// GET /api/wg/reports?seasonId=X
+// GET /api/wg/reports
 router.get('/', async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
-  if (isNaN(seasonId)) {
-    res.status(400).json({ error: 'seasonId مطلوب' });
-    return;
-  }
-  const reports = await service.listGinningReports(seasonId);
+  const reports = await service.listGinningReports();
   res.json(reports);
 });
 
 // POST /api/wg/reports
-router.post('/', upload.single('image'), async (req, res) => {
-  const seasonId = parseInt(req.body.seasonId || '', 10);
-  if (isNaN(seasonId)) {
-    res.status(400).json({ error: 'seasonId مطلوب' });
+router.post('/', upload.single('report'), async (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: 'لم يتم رفع ملف التقارير' });
     return;
   }
 
-  let imageUrl = req.body.imageUrl;
-  if (req.file) {
-    imageUrl = `/uploads/${req.file.filename}`;
-  }
+  const imageUrl = `/uploads/${req.file.filename}`;
 
-  if (!imageUrl) {
-    res.status(400).json({ error: 'يجب تقديم صورة التقرير' });
-    return;
-  }
-
-  const report = await service.createGinningReport(seasonId, imageUrl);
+  const report = await service.createGinningReport(imageUrl);
   res.status(201).json(report);
 });
 

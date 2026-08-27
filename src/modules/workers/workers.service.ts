@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 export const workerSchema = z.object({
   domain: z.enum(['WHITE_GOLD', 'AL_JAWHARA']),
-  seasonId: z.number(),
   name: z.string().min(1, 'اسم العامل مطلوب'),
   phone: z.string().optional(),
   dailyWage: z.number().min(0, 'الأجر اليومي مطلوب'),
@@ -12,11 +11,10 @@ export const workerSchema = z.object({
 
 export type WorkerInput = z.infer<typeof workerSchema>;
 
-export async function listWorkers(domain?: 'WHITE_GOLD' | 'AL_JAWHARA', seasonId?: number) {
+export async function listWorkers(domain?: 'WHITE_GOLD' | 'AL_JAWHARA') {
   return prisma.worker.findMany({
     where: {
       ...(domain ? { domain } : {}),
-      ...(seasonId && !isNaN(seasonId) ? { seasonId } : {}),
     },
     orderBy: { createdAt: 'desc' },
   });

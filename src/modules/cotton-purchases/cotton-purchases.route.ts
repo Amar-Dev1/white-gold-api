@@ -7,12 +7,7 @@ router.use(requireAuth, requireDomain('WHITE_GOLD'));
 
 // Cotton Purchases Routes
 router.get('/cotton', async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
-  if (isNaN(seasonId)) {
-    res.status(400).json({ error: 'seasonId مطلوب' });
-    return;
-  }
-  const purchases = await service.listCottonPurchases(seasonId);
+  const purchases = await service.listCottonPurchases();
   res.json(purchases);
 });
 
@@ -53,12 +48,7 @@ router.delete('/cotton/:id', async (req, res) => {
 
 // Packaging Purchases Routes
 router.get('/packaging', async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
-  if (isNaN(seasonId)) {
-    res.status(400).json({ error: 'seasonId مطلوب' });
-    return;
-  }
-  const purchases = await service.listPackagingPurchases(seasonId);
+  const purchases = await service.listPackagingPurchases();
   res.json(purchases);
 });
 

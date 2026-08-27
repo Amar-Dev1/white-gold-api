@@ -5,17 +5,10 @@ import * as service from './jawhara-sales.service';
 const router = Router();
 router.use(requireAuth, requireDomain('AL_JAWHARA'));
 
-// GET /api/jw/sales?seasonId=X&category=FEED
 router.get('/', async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
   const category = req.query.category as string | undefined;
 
-  if (isNaN(seasonId)) {
-    res.status(400).json({ error: 'seasonId مطلوب' });
-    return;
-  }
-
-  const sales = await service.listJawharaSales(seasonId, category);
+  const sales = await service.listJawharaSales(category);
   res.json(sales);
 });
 

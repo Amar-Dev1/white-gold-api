@@ -2,7 +2,6 @@ import { prisma } from '../../lib/prisma';
 import { z } from 'zod';
 
 export const jawharaExpenseSchema = z.object({
-  seasonId: z.number(),
   category: z.enum(['OPERATIONS', 'OTHER']),
   date: z.string(),
   description: z.string().min(1),
@@ -12,10 +11,9 @@ export const jawharaExpenseSchema = z.object({
 
 export type JawharaExpenseInput = z.infer<typeof jawharaExpenseSchema>;
 
-export async function listJawharaExpenses(seasonId: number, category?: string) {
+export async function listJawharaExpenses(category?: string) {
   return prisma.jawharaExpense.findMany({
     where: {
-      seasonId,
       ...(category ? { category } : {}),
     },
     orderBy: { date: 'desc' },

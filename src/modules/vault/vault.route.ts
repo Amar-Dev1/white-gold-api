@@ -4,31 +4,29 @@ import * as service from './vault.service';
 
 const router = Router();
 
-// GET /api/vault?seasonId=X&domain=WHITE_GOLD
-router.get('/', requireAuth, requireAdmin, async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
+// GET /api/vault/summary?domain=WHITE_GOLD
+router.get('/summary', requireAuth, requireAdmin, async (req, res) => {
   const domain = req.query.domain as 'WHITE_GOLD' | 'AL_JAWHARA' | undefined;
 
-  if (isNaN(seasonId) || !domain) {
-    res.status(400).json({ error: 'seasonId و domain مطلوبان' });
+  if (!domain) {
+    res.status(400).json({ error: 'المجال (domain) مطلوب' });
     return;
   }
 
-  const summary = await service.getVaultSummary(seasonId, domain);
+  const summary = await service.getVaultSummary(domain);
   res.json(summary);
 });
 
-// GET /api/vault/transactions?seasonId=X&domain=WHITE_GOLD
+// GET /api/vault/transactions?domain=WHITE_GOLD
 router.get('/transactions', requireAuth, requireAdmin, async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
   const domain = req.query.domain as 'WHITE_GOLD' | 'AL_JAWHARA' | undefined;
 
-  if (isNaN(seasonId) || !domain) {
-    res.status(400).json({ error: 'seasonId و domain مطلوبان' });
+  if (!domain) {
+    res.status(400).json({ error: 'المجال (domain) مطلوب' });
     return;
   }
 
-  const transactions = await service.getVaultTransactions(seasonId, domain);
+  const transactions = await service.getVaultTransactions(domain);
   res.json(transactions);
 });
 

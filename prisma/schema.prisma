@@ -43,41 +43,16 @@ model Session {
 }
 
 // ==========================================
-// Season & Vault Models
+// Vault Models
 // ==========================================
-
-model Season {
-  id         Int      @id @default(autoincrement())
-  name       String   // e.g., "موسم 2026"
-  domain     String   // WHITE_GOLD | AL_JAWHARA
-  startDate  DateTime
-  endDate    DateTime?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-
-  vaults            Vault[]
-  cottonPurchases   CottonPurchase[]
-  packagingPurchases PackagingPurchase[]
-  cottonSales       CottonSale[]
-  wasteSales        WasteSale[]
-  ginningReports    GinningReport[]
-  jawharaPurchases  JawharaPurchase[]
-  jawharaSales      JawharaSale[]
-  jawharaExpenses   JawharaExpense[]
-  workers           Worker[]
-}
 
 model Vault {
   id             Int               @id @default(autoincrement())
-  seasonId       Int
-  season         Season            @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  domain         String            // WHITE_GOLD | AL_JAWHARA
+  domain         String            @unique // WHITE_GOLD | AL_JAWHARA
   initialCapital Float             @default(0)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   adjustments    VaultAdjustment[]
-
-  @@unique([seasonId, domain])
 }
 
 // قيود التسوية والتعديل اليدوي للرصيد المتاح للخزينة
@@ -103,8 +78,6 @@ model VaultAdjustment {
 // مشتريات خام القطن (زهرة)
 model CottonPurchase {
   id               Int      @id @default(autoincrement())
-  seasonId         Int
-  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   date             DateTime
   sacksCount       Int
   weightKg         Float
@@ -114,14 +87,12 @@ model CottonPurchase {
   customerName     String
   createdAt        DateTime @default(now())
 
-  @@index([seasonId, date])
+  @@index([date])
 }
 
 // مشتريات أدوات تعبئة كالشوالات
 model PackagingPurchase {
   id          Int      @id @default(autoincrement())
-  seasonId    Int
-  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   date        DateTime
   quantity    Int
   price       Float
@@ -129,14 +100,12 @@ model PackagingPurchase {
   type        String   // e.g. "شوالات", "أربطة"
   createdAt   DateTime @default(now())
 
-  @@index([seasonId, date])
+  @@index([date])
 }
 
 // مبيعات قطن (شعرة)
 model CottonSale {
   id           Int      @id @default(autoincrement())
-  seasonId     Int
-  season       Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   date         DateTime
   quantity     Int
   weightKg     Float
@@ -147,34 +116,29 @@ model CottonSale {
   destination  String
   createdAt    DateTime @default(now())
 
-  @@index([seasonId, date])
+  @@index([date])
 }
 
 // مبيعات مخلفات الحلج
 model WasteSale {
   id           Int      @id @default(autoincrement())
-  seasonId     Int
-  season       Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   date         DateTime
   quantity     Int
   weightKg     Float
   pricePerUnit Float
   totalAmount  Float
   type         String   // e.g. "مخلفات حلج", "بذور"
+  customerName String?  // Add optional customer name
   createdAt    DateTime @default(now())
 
-  @@index([seasonId, date])
+  @@index([date])
 }
 
 // تقارير الحلج (صور مرفوعة)
 model GinningReport {
   id        Int      @id @default(autoincrement())
-  seasonId  Int
-  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   imageUrl  String
   createdAt DateTime @default(now())
-
-  @@index([seasonId])
 }
 
 // ==========================================
@@ -184,8 +148,6 @@ model GinningReport {
 // مشتريات الجوهرة (خام / انتاج / أخرى)
 model JawharaPurchase {
   id               Int      @id @default(autoincrement())
-  seasonId         Int
-  season           Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   category         String   // RAW | PRODUCTION | OTHER
   date             DateTime
   sacksCount       Int
@@ -196,14 +158,12 @@ model JawharaPurchase {
   customerName     String
   createdAt        DateTime @default(now())
 
-  @@index([seasonId, category, date])
+  @@index([category, date])
 }
 
 // مبيعات الجوهرة (أمباز / زيت / مخلفات)
 model JawharaSale {
   id           Int      @id @default(autoincrement())
-  seasonId     Int
-  season       Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   category     String   // FEED | OIL | WASTE
   date         DateTime
   quantity     Int
@@ -213,14 +173,12 @@ model JawharaSale {
   customerName String
   createdAt    DateTime @default(now())
 
-  @@index([seasonId, category, date])
+  @@index([category, date])
 }
 
 // منصرفات الجوهرة (تشغيل وإنتاج / أخرى)
 model JawharaExpense {
   id          Int      @id @default(autoincrement())
-  seasonId    Int
-  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   category    String   // OPERATIONS | OTHER
   date        DateTime
   description String
@@ -228,7 +186,7 @@ model JawharaExpense {
   notes       String?
   createdAt   DateTime @default(now())
 
-  @@index([seasonId, category, date])
+  @@index([category, date])
 }
 
 // مخزون الجوهرة
@@ -296,13 +254,11 @@ model Employee {
 model Worker {
   id        Int      @id @default(autoincrement())
   domain    String   // WHITE_GOLD | AL_JAWHARA
-  seasonId  Int
-  season    Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
   name      String
   phone     String?
   dailyWage Float
   notes     String?
   createdAt DateTime @default(now())
 
-  @@index([domain, seasonId])
+  @@index([domain])
 }

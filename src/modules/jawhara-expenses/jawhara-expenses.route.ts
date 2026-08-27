@@ -5,17 +5,10 @@ import * as service from './jawhara-expenses.service';
 const router = Router();
 router.use(requireAuth, requireDomain('AL_JAWHARA'));
 
-// GET /api/jw/expenses?seasonId=X&category=OPERATIONS
 router.get('/', async (req, res) => {
-  const seasonId = parseInt(req.query.seasonId as string || '', 10);
   const category = req.query.category as string | undefined;
 
-  if (isNaN(seasonId)) {
-    res.status(400).json({ error: 'seasonId مطلوب' });
-    return;
-  }
-
-  const expenses = await service.listJawharaExpenses(seasonId, category);
+  const expenses = await service.listJawharaExpenses(category);
   res.json(expenses);
 });
 

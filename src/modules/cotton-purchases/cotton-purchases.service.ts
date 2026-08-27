@@ -2,7 +2,6 @@ import { prisma } from '../../lib/prisma';
 import { z } from 'zod';
 
 export const cottonPurchaseSchema = z.object({
-  seasonId: z.number(),
   date: z.string(),
   sacksCount: z.number().min(1),
   weightKg: z.number().min(0),
@@ -13,7 +12,6 @@ export const cottonPurchaseSchema = z.object({
 });
 
 export const packagingPurchaseSchema = z.object({
-  seasonId: z.number(),
   date: z.string(),
   quantity: z.number().min(1),
   price: z.number().min(0),
@@ -26,9 +24,8 @@ export type CottonPurchaseInput = z.infer<typeof cottonPurchaseSchema>;
 export type PackagingPurchaseInput = z.infer<typeof packagingPurchaseSchema>;
 
 // Cotton Purchases
-export async function listCottonPurchases(seasonId: number) {
+export async function listCottonPurchases() {
   return prisma.cottonPurchase.findMany({
-    where: { seasonId },
     orderBy: { date: 'desc' },
   });
 }
@@ -51,9 +48,8 @@ export async function deleteCottonPurchase(id: number) {
 }
 
 // Packaging Purchases
-export async function listPackagingPurchases(seasonId: number) {
+export async function listPackagingPurchases() {
   return prisma.packagingPurchase.findMany({
-    where: { seasonId },
     orderBy: { date: 'desc' },
   });
 }

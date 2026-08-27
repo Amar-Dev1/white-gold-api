@@ -5,9 +5,9 @@ import path from 'path';
 
 // Module Routes
 import authRoutes from './src/modules/auth/auth.route';
-import seasonsRoutes from './src/modules/seasons/seasons.route';
 import vaultRoutes from './src/modules/vault/vault.route';
 import usersRoutes from './src/modules/users/users.route';
+import statisticsRoutes from './src/modules/statistics/statistics.route';
 import wgPurchasesRoutes from './src/modules/cotton-purchases/cotton-purchases.route';
 import wgSalesRoutes from './src/modules/cotton-sales/cotton-sales.route';
 import wgReportsRoutes from './src/modules/ginning-reports/ginning-reports.route';
@@ -34,9 +34,9 @@ app.use('/uploads', express.static(UPLOAD_DIR));
 
 // API Router Mounting
 app.use('/api/auth', authRoutes);
-app.use('/api/seasons', seasonsRoutes);
 app.use('/api/vault', vaultRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/statistics', statisticsRoutes);
 app.use('/api/wg/purchases', wgPurchasesRoutes);
 app.use('/api/wg/sales', wgSalesRoutes);
 app.use('/api/wg/reports', wgReportsRoutes);
