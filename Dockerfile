@@ -11,6 +11,9 @@ RUN bun install --production
 # Copy source files
 COPY . .
 
+# Provide a default DATABASE_URL for prisma generate to avoid PrismaConfigEnvError
+ENV DATABASE_URL="file:./db.sql"
+
 # Generate Prisma Client
 RUN bun --bun run prisma generate
 
