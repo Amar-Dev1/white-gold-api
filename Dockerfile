@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY prisma ./prisma/
 
-RUN bun install --production --frozenlockfile
+RUN bun install --production
 
 # Copy source files
 COPY . .
