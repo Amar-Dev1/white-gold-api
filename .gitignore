@@ -34,3 +34,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 /generated/prisma
+
+# SQLite database files
+*.sql
+*.sql-journal
+*.sql-shm
+*.sql-wal
+db.sql
