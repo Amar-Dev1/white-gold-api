@@ -26,7 +26,8 @@ const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 
 // Static uploads serving
@@ -52,6 +53,20 @@ app.use('/api/uploads', uploadsRoutes);
 // Health Check
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'OK', service: 'WhiteGold ERP Backend API', timestamp: new Date().toISOString() });
+});
+
+// Error handling middleware
+app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err.type === 'entity.too.large' || err.status === 413) {
+    res.status(413).json({ error: 'حجم الصورة أو الملف المرفوع كبير جداً (الحد الأقصى المسموح به هو 50 ميغابايت).' });
+    return;
+  }
+  if (err.message === 'INVALID_FILE_TYPE') {
+    res.status(400).json({ error: 'نوع الملف غير مدعوم. يرجى رفع صورة بصيغة (JPG, PNG, WEBP) أو ملف PDF.' });
+    return;
+  }
+  console.error('Server error:', err);
+  res.status(500).json({ error: 'حدث خطأ في الخادم أثناء معالجة الطلب.' });
 });
 
 if (process.env.NODE_ENV !== 'test') {
