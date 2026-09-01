@@ -21,13 +21,6 @@ describe('Al-Jawhara Live Stock Synchronization & Availability Verification', ()
     });
     adminToken = (await login.json()).token;
 
-    // Get season ID
-    const seasonRes = await fetch(`${baseUrl}/seasons?domain=AL_JAWHARA`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    const seasons = await seasonRes.json();
-    seasonId = seasons[0].id;
-
     // Clean test stock items and movements
     await prisma.stockMovement.deleteMany({});
     await prisma.stock.deleteMany({});
@@ -45,7 +38,6 @@ describe('Al-Jawhara Live Stock Synchronization & Availability Verification', ()
         Authorization: `Bearer ${adminToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         category: 'RAW',
         date: '2026-02-01',
         sacksCount: 500,
@@ -87,7 +79,6 @@ describe('Al-Jawhara Live Stock Synchronization & Availability Verification', ()
         Authorization: `Bearer ${adminToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         category: 'FEED',
         date: '2026-02-02',
         quantity: 1000,
@@ -112,7 +103,6 @@ describe('Al-Jawhara Live Stock Synchronization & Availability Verification', ()
         Authorization: `Bearer ${adminToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         category: 'FEED',
         date: '2026-02-03',
         quantity: 200,

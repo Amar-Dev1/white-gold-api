@@ -50,7 +50,10 @@ describe('Users Management Module (Admin Only)', () => {
     expect(res.status).toBe(403);
   });
 
+  let createdUserId: number;
+
   test('POST /api/users - admin can create user with specific domain permissions', async () => {
+    const testUsername = `accountant_${Date.now()}`;
     const createRes = await fetch(`${baseUrl}/users`, {
       method: 'POST',
       headers: {
@@ -58,7 +61,7 @@ describe('Users Management Module (Admin Only)', () => {
         Authorization: `Bearer ${adminToken}`,
       },
       body: JSON.stringify({
-        username: 'test_accountant',
+        username: testUsername,
         password: 'accountant123',
         role: 'EMPLOYEE',
         domains: ['AL_JAWHARA'],
@@ -66,14 +69,15 @@ describe('Users Management Module (Admin Only)', () => {
     });
     expect(createRes.status).toBe(201);
     const newUser = await createRes.json();
-    expect(newUser.username).toBe('test_accountant');
+    expect(newUser.username).toBe(testUsername);
     expect(newUser.allowedDomains).toEqual(['AL_JAWHARA']);
+    createdUserId = newUser.id;
 
     // Verify created user can login
     const loginRes = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'test_accountant', password: 'accountant123' }),
+      body: JSON.stringify({ username: testUsername, password: 'accountant123' }),
     });
     expect(loginRes.status).toBe(200);
     const loginData = await loginRes.json();
@@ -81,15 +85,7 @@ describe('Users Management Module (Admin Only)', () => {
   });
 
   test('PUT /api/users/:id - admin can update user permissions', async () => {
-    // 1. Fetch user list
-    const listRes = await fetch(`${baseUrl}/users`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    const users = await listRes.json();
-    const targetUser = users.find((u: any) => u.username === 'test_accountant');
-
-    // 2. Grant access to both domains
-    const updateRes = await fetch(`${baseUrl}/users/${targetUser.id}`, {
+    const updateRes = await fetch(`${baseUrl}/users/${createdUserId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -108,13 +104,7 @@ describe('Users Management Module (Admin Only)', () => {
   });
 
   test('DELETE /api/users/:id - admin can delete user', async () => {
-    const listRes = await fetch(`${baseUrl}/users`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    const users = await listRes.json();
-    const targetUser = users.find((u: any) => u.username === 'test_accountant');
-
-    const delRes = await fetch(`${baseUrl}/users/${targetUser.id}`, {
+    const delRes = await fetch(`${baseUrl}/users/${createdUserId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${adminToken}` },
     });

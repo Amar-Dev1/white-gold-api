@@ -19,13 +19,6 @@ describe('Jawhara Purchases Module', () => {
       body: JSON.stringify({ username: 'jw_user', password: 'pass123' }),
     });
     jwToken = (await login.json()).token;
-
-    // Get active season
-    const seasonsRes = await fetch(`${baseUrl}/seasons?domain=AL_JAWHARA`, {
-      headers: { Authorization: `Bearer ${jwToken}` },
-    });
-    const seasons = await seasonsRes.json();
-    seasonId = seasons[0].id;
   });
 
   afterAll(() => {
@@ -41,7 +34,6 @@ describe('Jawhara Purchases Module', () => {
         Authorization: `Bearer ${jwToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         category: 'RAW',
         date: '2026-08-20',
         sacksCount: 200,
@@ -49,15 +41,18 @@ describe('Jawhara Purchases Module', () => {
         pricePerSack: 25000,
         totalAmount: 5000000,
         truckPlateNumber: 'خ 4567',
-        customerName: 'مورد بذرة القطن علي',
+        driverName: 'عثمان إبراهيم',
+        driverPhone: '0912345678',
+        customerName: 'مورد القطن علي',
       }),
     });
     expect(createRes.status).toBe(201);
     const created = await createRes.json();
     expect(created.category).toBe('RAW');
+    expect(created.driverName).toBe('عثمان إبراهيم');
 
     // 2. List RAW Purchases
-    const listRes = await fetch(`${baseUrl}/jw/purchases?seasonId=${seasonId}&category=RAW`, {
+    const listRes = await fetch(`${baseUrl}/jw/purchases?category=RAW`, {
       headers: { Authorization: `Bearer ${jwToken}` },
     });
     expect(listRes.status).toBe(200);

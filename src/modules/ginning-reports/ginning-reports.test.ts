@@ -19,13 +19,6 @@ describe('WhiteGold Ginning Reports Module', () => {
       body: JSON.stringify({ username: 'wg_user', password: 'pass123' }),
     });
     wgToken = (await login.json()).token;
-
-    // Get active season
-    const seasonsRes = await fetch(`${baseUrl}/seasons?domain=WHITE_GOLD`, {
-      headers: { Authorization: `Bearer ${wgToken}` },
-    });
-    const seasons = await seasonsRes.json();
-    seasonId = seasons[0].id;
   });
 
   afterAll(() => {
@@ -41,7 +34,6 @@ describe('WhiteGold Ginning Reports Module', () => {
         Authorization: `Bearer ${wgToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d',
       }),
     });
@@ -51,7 +43,7 @@ describe('WhiteGold Ginning Reports Module', () => {
     expect(created.imageUrl).toContain('unsplash');
 
     // 2. List reports
-    const listRes = await fetch(`${baseUrl}/wg/reports?seasonId=${seasonId}`, {
+    const listRes = await fetch(`${baseUrl}/wg/reports`, {
       headers: { Authorization: `Bearer ${wgToken}` },
     });
     expect(listRes.status).toBe(200);

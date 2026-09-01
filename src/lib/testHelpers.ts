@@ -6,7 +6,6 @@ import { prisma } from './prisma';
 
 // Module Route Imports
 import authRoutes from '../modules/auth/auth.route';
-import seasonsRoutes from '../modules/seasons/seasons.route';
 import vaultRoutes from '../modules/vault/vault.route';
 import usersRoutes from '../modules/users/users.route';
 import wgPurchasesRoutes from '../modules/cotton-purchases/cotton-purchases.route';
@@ -27,7 +26,6 @@ export function createTestApp(): Express {
   app.use(cookieParser());
 
   app.use('/api/auth', authRoutes);
-  app.use('/api/seasons', seasonsRoutes);
   app.use('/api/vault', vaultRoutes);
   app.use('/api/users', usersRoutes);
   app.use('/api/wg/purchases', wgPurchasesRoutes);
@@ -98,32 +96,18 @@ export async function ensureTestUsers() {
     create: { userId: jwUser.id, domain: 'AL_JAWHARA' },
   });
 
-  // Ensure active season exists for both domains in tests
-  const wgSeason = await prisma.season.findFirst({ where: { domain: 'WHITE_GOLD', isActive: true } });
-  if (!wgSeason) {
-    await prisma.season.create({
-      data: {
-        name: 'موسم 2026 الحالي',
-        domain: 'WHITE_GOLD',
-        startDate: new Date('2026-01-01'),
-        isActive: true,
-        vaults: { create: { domain: 'WHITE_GOLD', initialCapital: 0 } },
-      },
-    });
-  }
+  // Ensure vault exists for both domains in tests
+  await prisma.vault.upsert({
+    where: { domain: 'WHITE_GOLD' },
+    update: {},
+    create: { domain: 'WHITE_GOLD', initialCapital: 1000000 },
+  });
 
-  const jwSeason = await prisma.season.findFirst({ where: { domain: 'AL_JAWHARA', isActive: true } });
-  if (!jwSeason) {
-    await prisma.season.create({
-      data: {
-        name: 'موسم 2026 الحالي',
-        domain: 'AL_JAWHARA',
-        startDate: new Date('2026-01-01'),
-        isActive: true,
-        vaults: { create: { domain: 'AL_JAWHARA', initialCapital: 0 } },
-      },
-    });
-  }
+  await prisma.vault.upsert({
+    where: { domain: 'AL_JAWHARA' },
+    update: {},
+    create: { domain: 'AL_JAWHARA', initialCapital: 1000000 },
+  });
 }
 
 export async function startTestServer() {

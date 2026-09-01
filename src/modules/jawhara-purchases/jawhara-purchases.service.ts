@@ -5,11 +5,13 @@ import { syncPurchaseToStock, revertPurchaseStock } from '../stock/stock.service
 export const jawharaPurchaseSchema = z.object({
   category: z.enum(['RAW', 'PRODUCTION', 'OTHER']),
   date: z.string(),
-  sacksCount: z.number().min(1),
+  sacksCount: z.number().min(0).default(0),
   weightKg: z.number().min(0),
   pricePerSack: z.number().min(0),
   totalAmount: z.number().min(0),
-  truckPlateNumber: z.string(),
+  truckPlateNumber: z.string().optional().default(''),
+  driverName: z.string().optional().nullable(),
+  driverPhone: z.string().optional().nullable(),
   customerName: z.string(),
 });
 

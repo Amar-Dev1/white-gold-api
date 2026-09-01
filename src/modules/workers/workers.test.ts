@@ -19,13 +19,6 @@ describe('Workers Module', () => {
       body: JSON.stringify({ username: 'wg_user', password: 'pass123' }),
     });
     wgToken = (await login.json()).token;
-
-    // Get season
-    const seasonsRes = await fetch(`${baseUrl}/seasons?domain=WHITE_GOLD`, {
-      headers: { Authorization: `Bearer ${wgToken}` },
-    });
-    const seasons = await seasonsRes.json();
-    seasonId = seasons[0].id;
   });
 
   afterAll(() => {
@@ -42,7 +35,6 @@ describe('Workers Module', () => {
       },
       body: JSON.stringify({
         domain: 'WHITE_GOLD',
-        seasonId,
         name: 'العامل إبراهيم حسن',
         phone: '0988888888',
         dailyWage: 15000,
@@ -54,7 +46,7 @@ describe('Workers Module', () => {
     expect(created.name).toBe('العامل إبراهيم حسن');
 
     // 2. List Workers
-    const listRes = await fetch(`${baseUrl}/workers?domain=WHITE_GOLD&seasonId=${seasonId}`, {
+    const listRes = await fetch(`${baseUrl}/workers?domain=WHITE_GOLD`, {
       headers: { Authorization: `Bearer ${wgToken}` },
     });
     expect(listRes.status).toBe(200);

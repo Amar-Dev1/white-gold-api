@@ -21,13 +21,6 @@ describe('Jawhara Sales Module', () => {
     });
     jwToken = (await login.json()).token;
 
-    // Get active season
-    const seasonsRes = await fetch(`${baseUrl}/seasons?domain=AL_JAWHARA`, {
-      headers: { Authorization: `Bearer ${jwToken}` },
-    });
-    const seasons = await seasonsRes.json();
-    seasonId = seasons[0].id;
-
     // Ensure stock exists for OIL for testing sale
     await prisma.stock.upsert({
       where: { id: 999999 },
@@ -35,7 +28,7 @@ describe('Jawhara Sales Module', () => {
       create: {
         id: 999999,
         category: 'OIL',
-        itemName: 'مخزون زيت البذرة النقي',
+        itemName: 'مخزون الزيت النقي',
         currentQuantity: 500,
         unit: 'برميل',
       },
@@ -55,7 +48,6 @@ describe('Jawhara Sales Module', () => {
         Authorization: `Bearer ${jwToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         category: 'OIL',
         date: '2026-08-20',
         quantity: 50,
@@ -70,7 +62,7 @@ describe('Jawhara Sales Module', () => {
     expect(created.category).toBe('OIL');
 
     // 2. List Oil Sales
-    const listRes = await fetch(`${baseUrl}/jw/sales?seasonId=${seasonId}&category=OIL`, {
+    const listRes = await fetch(`${baseUrl}/jw/sales?category=OIL`, {
       headers: { Authorization: `Bearer ${jwToken}` },
     });
     expect(listRes.status).toBe(200);

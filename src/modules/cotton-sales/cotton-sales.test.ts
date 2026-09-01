@@ -19,13 +19,6 @@ describe('WhiteGold Sales Module', () => {
       body: JSON.stringify({ username: 'wg_user', password: 'pass123' }),
     });
     wgToken = (await login.json()).token;
-
-    // Get active season
-    const seasonsRes = await fetch(`${baseUrl}/seasons?domain=WHITE_GOLD`, {
-      headers: { Authorization: `Bearer ${wgToken}` },
-    });
-    const seasons = await seasonsRes.json();
-    seasonId = seasons[0].id;
   });
 
   afterAll(() => {
@@ -41,7 +34,6 @@ describe('WhiteGold Sales Module', () => {
         Authorization: `Bearer ${wgToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         date: '2026-08-20',
         quantity: 80,
         weightKg: 18000,
@@ -58,7 +50,7 @@ describe('WhiteGold Sales Module', () => {
     expect(created.lotNumber).toBe('LOT-2026-001');
 
     // 2. List
-    const listRes = await fetch(`${baseUrl}/wg/sales/cotton?seasonId=${seasonId}`, {
+    const listRes = await fetch(`${baseUrl}/wg/sales/cotton`, {
       headers: { Authorization: `Bearer ${wgToken}` },
     });
     expect(listRes.status).toBe(200);
@@ -95,7 +87,6 @@ describe('WhiteGold Sales Module', () => {
         Authorization: `Bearer ${wgToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         date: '2026-08-20',
         quantity: 25,
         weightKg: 2500,
@@ -108,7 +99,7 @@ describe('WhiteGold Sales Module', () => {
     const created = await createRes.json();
 
     // 2. List
-    const listRes = await fetch(`${baseUrl}/wg/sales/waste?seasonId=${seasonId}`, {
+    const listRes = await fetch(`${baseUrl}/wg/sales/waste`, {
       headers: { Authorization: `Bearer ${wgToken}` },
     });
     expect(listRes.status).toBe(200);

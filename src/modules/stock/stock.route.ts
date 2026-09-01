@@ -13,8 +13,8 @@ router.get('/', async (req, res) => {
   // If a specific category was requested and no item exists yet, ensure one exists
   if (category && items.length === 0) {
     const defaultNames: Record<string, string> = {
-      OIL: 'مخزون زيت البذرة الصافي',
-      FEED: 'مخزون أمباز (علف البذرة)',
+      OIL: 'مخزون الزيت الصافي',
+      FEED: 'مخزون أمباز (علف)',
       WASTE: 'مخزون مخلفات العصر',
       PACKAGING: 'مخزون مستلزمات التعبئة',
     };

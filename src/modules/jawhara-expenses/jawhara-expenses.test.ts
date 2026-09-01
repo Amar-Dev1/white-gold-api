@@ -19,13 +19,6 @@ describe('Jawhara Expenses Module', () => {
       body: JSON.stringify({ username: 'jw_user', password: 'pass123' }),
     });
     jwToken = (await login.json()).token;
-
-    // Get active season
-    const seasonsRes = await fetch(`${baseUrl}/seasons?domain=AL_JAWHARA`, {
-      headers: { Authorization: `Bearer ${jwToken}` },
-    });
-    const seasons = await seasonsRes.json();
-    seasonId = seasons[0].id;
   });
 
   afterAll(() => {
@@ -41,7 +34,6 @@ describe('Jawhara Expenses Module', () => {
         Authorization: `Bearer ${jwToken}`,
       },
       body: JSON.stringify({
-        seasonId,
         category: 'OPERATIONS',
         date: '2026-08-20',
         description: 'صيانة وقود المولدات',
@@ -54,7 +46,7 @@ describe('Jawhara Expenses Module', () => {
     expect(created.amount).toBe(450000);
 
     // 2. List Expenses
-    const listRes = await fetch(`${baseUrl}/jw/expenses?seasonId=${seasonId}&category=OPERATIONS`, {
+    const listRes = await fetch(`${baseUrl}/jw/expenses?category=OPERATIONS`, {
       headers: { Authorization: `Bearer ${jwToken}` },
     });
     expect(listRes.status).toBe(200);

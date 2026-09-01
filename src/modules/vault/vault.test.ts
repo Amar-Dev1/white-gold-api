@@ -31,16 +31,9 @@ describe('Vault Module (Strict & Comprehensive)', () => {
     });
     employeeToken = (await empLogin.json()).token;
 
-    // Get season ID
-    const seasonRes = await fetch(`${baseUrl}/seasons?domain=WHITE_GOLD`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    const seasons = await seasonRes.json();
-    seasonId = seasons[0].id;
-
     // Reset vault initial capital to 0 & delete existing adjustments for clean test isolation
     const v = await prisma.vault.findUnique({
-      where: { seasonId_domain: { seasonId, domain: 'WHITE_GOLD' } },
+      where: { domain: 'WHITE_GOLD' },
     });
     if (v) {
       vaultId = v.id;
@@ -53,8 +46,8 @@ describe('Vault Module (Strict & Comprehensive)', () => {
     serverInstance?.close();
   });
 
-  test('GET /api/vault - admin can get vault summary', async () => {
-    const res = await fetch(`${baseUrl}/vault?seasonId=${seasonId}&domain=WHITE_GOLD`, {
+  test('GET /api/vault/summary - admin can get vault summary', async () => {
+    const res = await fetch(`${baseUrl}/vault/summary?domain=WHITE_GOLD`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     expect(res.status).toBe(200);
@@ -67,8 +60,8 @@ describe('Vault Module (Strict & Comprehensive)', () => {
     vaultId = data.vaultId;
   });
 
-  test('GET /api/vault - employee is blocked (403)', async () => {
-    const res = await fetch(`${baseUrl}/vault?seasonId=${seasonId}&domain=WHITE_GOLD`, {
+  test('GET /api/vault/summary - employee is blocked (403)', async () => {
+    const res = await fetch(`${baseUrl}/vault/summary?domain=WHITE_GOLD`, {
       headers: { Authorization: `Bearer ${employeeToken}` },
     });
     expect(res.status).toBe(403);
@@ -162,7 +155,7 @@ describe('Vault Module (Strict & Comprehensive)', () => {
     expect(debitData.id).toBeDefined();
 
     // 3. Verify vault summary recalculation
-    const summaryRes = await fetch(`${baseUrl}/vault?seasonId=${seasonId}&domain=WHITE_GOLD`, {
+    const summaryRes = await fetch(`${baseUrl}/vault/summary?domain=WHITE_GOLD`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     const summary = await summaryRes.json();
@@ -171,7 +164,7 @@ describe('Vault Module (Strict & Comprehensive)', () => {
     expect(summary.availableBalance).toBe(60000000 + summary.creditTotal - summary.debitTotal);
 
     // 4. Verify transactions list includes manual adjustments
-    const txnsRes = await fetch(`${baseUrl}/vault/transactions?seasonId=${seasonId}&domain=WHITE_GOLD`, {
+    const txnsRes = await fetch(`${baseUrl}/vault/transactions?domain=WHITE_GOLD`, {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     const txns = await txnsRes.json();

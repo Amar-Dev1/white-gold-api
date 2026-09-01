@@ -109,8 +109,8 @@ export async function ensureStockItemForCategory(category: string, defaultName: 
 // Sync Sale operation to Stock (OUT) with strict availability check
 export async function syncSaleToStock(saleId: number, category: string, date: Date, quantity: number, customerName: string) {
   const defaultNames: Record<string, string> = {
-    FEED: 'مخزون أمباز (علف البذرة)',
-    OIL: 'مخزون زيت البذرة النقي',
+    FEED: 'مخزون أمباز (علف)',
+    OIL: 'مخزون الزيت النقي',
     WASTE: 'مخزون مخلفات العصر',
   };
   const defaultUnits: Record<string, string> = {
@@ -158,7 +158,7 @@ export async function syncPurchaseToStock(purchaseId: number, category: string, 
     OTHER: 'SPARE_PARTS',
   };
   const defaultNames: Record<string, string> = {
-    RAW: 'مخزون خام بذرة القطن',
+    RAW: 'مخزون خام القطن',
     PRODUCTION: 'مخزون مستلزمات الإنتاج والتعبئة',
     OTHER: 'مخزون قطع غيار ومستلزمات تشغيل',
   };
