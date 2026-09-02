@@ -73,7 +73,7 @@ export async function createUser(input: CreateUserInput) {
 }
 
 export async function updateUser(id: number, input: UpdateUserInput) {
-  const user = await prisma.user.findUnique({ where: { id } });
+  const user = await prisma.user.findUnique({ where: { id }, include: { domainAccess: true } });
   if (!user) {
     throw new Error('USER_NOT_FOUND');
   }

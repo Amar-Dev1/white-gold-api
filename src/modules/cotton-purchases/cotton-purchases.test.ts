@@ -36,24 +36,25 @@ describe('WhiteGold Purchases Module', () => {
       body: JSON.stringify({
         date: '2026-08-20',
         sacksCount: 150,
-        weightKg: 6750,
-        pricePerSack: 45000,
-        totalAmount: 6750000,
+        weightTornata: 6750,
+        price: 45000,
         truckPlateNumber: 'أ ب ج 1234',
         customerName: 'المزارع أحمد علي',
       }),
     });
     expect(createRes.status).toBe(201);
-    const created = await createRes.json();
+    const created: any = await createRes.json();
     expect(created.id).toBeDefined();
     expect(created.sacksCount).toBe(150);
+    expect(created.tierKilo).toBe(150 * 1.335);
+    expect(created.weightQuntar).toBeCloseTo(((6750 - (150 * 1.335)) * 2.205) / 315, 2);
 
     // 2. List
     const listRes = await fetch(`${baseUrl}/wg/purchases/cotton`, {
       headers: { Authorization: `Bearer ${wgToken}` },
     });
     expect(listRes.status).toBe(200);
-    const items = await listRes.json();
+    const items: any = await listRes.json();
     expect(items.length).toBeGreaterThan(0);
 
     // 3. Edit
@@ -66,8 +67,9 @@ describe('WhiteGold Purchases Module', () => {
       body: JSON.stringify({ sacksCount: 160 }),
     });
     expect(editRes.status).toBe(200);
-    const updated = await editRes.json();
+    const updated: any = await editRes.json();
     expect(updated.sacksCount).toBe(160);
+    expect(updated.tierKilo).toBe(160 * 1.335);
 
     // 4. Delete
     const delRes = await fetch(`${baseUrl}/wg/purchases/cotton/${created.id}`, {

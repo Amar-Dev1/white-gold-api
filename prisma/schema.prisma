@@ -80,8 +80,10 @@ model CottonPurchase {
   id               Int      @id @default(autoincrement())
   date             DateTime
   sacksCount       Int
-  weightKg         Float
-  pricePerSack     Float
+  weightTornata    Float
+  tierKilo         Float
+  weightQuntar     Float
+  price            Float
   totalAmount      Float
   truckPlateNumber String
   customerName     String

@@ -59,7 +59,7 @@ router.post('/adjustments', requireAuth, requireAdmin, async (req, res) => {
 
 // DELETE /api/vault/adjustments/:id
 router.delete('/adjustments/:id', requireAuth, requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id || '', 10);
+  const id = parseInt(String(req.params.id || ''), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: 'المعرف غير صحيح' });
     return;
@@ -71,7 +71,7 @@ router.delete('/adjustments/:id', requireAuth, requireAdmin, async (req, res) =>
 
 // PATCH /api/vault/:id (Update initial capital — one-time only)
 router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id || '', 10);
+  const id = parseInt(String(req.params.id || ''), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: 'معرف الخزنة غير صحيح' });
     return;
@@ -101,7 +101,7 @@ router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
 
 // POST /api/vault/:id/emergency-override (Emergency Admin bypass)
 router.post('/:id/emergency-override', requireAuth, requireAdmin, async (req, res) => {
-  const id = parseInt(req.params.id || '', 10);
+  const id = parseInt(String(req.params.id || ''), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: 'معرف الخزنة غير صحيح' });
     return;

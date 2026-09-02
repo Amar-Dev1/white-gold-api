@@ -9,6 +9,7 @@
     "start": "bun dist/index.js",
     "db:push": "bun --bun run prisma db push",
     "db:seed": "bun run prisma/seed.ts",
+    "db:reset": "bun run prisma/reset.ts",
     "test": "bun test"
   },
   "devDependencies": {

@@ -132,6 +132,9 @@ bun --bun run prisma db push
 # 3. Seed initial admin user (admin / admin123)
 bun run prisma/seed.ts
 
+# Wipe all database data clean (100% empty)
+bun run db:reset # or bun run prisma/reset.ts
+
 # 4. Start API server
 bun run dev
 ```

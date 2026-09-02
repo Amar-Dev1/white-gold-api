@@ -1,7 +1,8 @@
-import express, { Express } from 'express';
+import express, { type Express } from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
+import type { AddressInfo } from 'net';
 import { prisma } from './prisma';
 
 // Module Route Imports
@@ -110,12 +111,16 @@ export async function ensureTestUsers() {
   });
 }
 
+export async function parseJson(res: any): Promise<any> {
+  return res.json();
+}
+
 export async function startTestServer() {
   await ensureTestUsers();
   const app = createTestApp();
   return new Promise<{ server: any; baseUrl: string }>((resolve) => {
     const server = app.listen(0, () => {
-      const address = server.address() as { port: number };
+      const address = server.address() as AddressInfo;
       resolve({ server, baseUrl: `http://localhost:${address.port}/api` });
     });
   });

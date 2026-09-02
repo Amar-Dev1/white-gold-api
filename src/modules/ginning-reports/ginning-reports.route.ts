@@ -26,7 +26,7 @@ router.post('/', upload.single('report'), async (req, res) => {
       // Handle base64 data URL
       if (typeof inputUrl === 'string' && inputUrl.startsWith('data:')) {
         const matches = inputUrl.match(/^data:([A-Za-z0-9\-+\/]+);base64,(.+)$/);
-        if (matches && matches.length === 3) {
+        if (matches && matches[1] && matches[2]) {
           const mimeType = matches[1];
           const base64Data = matches[2];
           let ext = 'jpg';
@@ -61,7 +61,7 @@ router.post('/', upload.single('report'), async (req, res) => {
 
 // DELETE /api/wg/reports/:id
 router.delete('/:id', async (req, res) => {
-  const id = parseInt(req.params.id || '', 10);
+  const id = parseInt(String(req.params.id || ''), 10);
   if (isNaN(id)) {
     res.status(400).json({ error: 'المعرف غير صحيح' });
     return;
